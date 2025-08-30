@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-module ::MyPluginModule
+module ::ReplyOnSolutionModule
   class ExamplesController < ::ApplicationController
-    requires_plugin PLUGIN_NAME
+    requires_plugin REPLY_ON_SOLUTION
 
     def index
       render json: { hello: "world" }
