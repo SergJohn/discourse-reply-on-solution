@@ -1,6 +1,7 @@
 en:
   site_settings:
     reply_on_solution_enabled: "Enabled"
+    categories: "TODO_reply_on_solution"
   discourse_automation:
     scriptables:
       reply_on_solution:
