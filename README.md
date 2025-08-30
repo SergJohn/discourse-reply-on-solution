@@ -1,4 +1,4 @@
-# **Plugin Name** Plugin
+# **Discourse Reply on solution** Plugin
 
 **Plugin Summary**
 
