@@ -3,7 +3,7 @@
 module ::ReplyOnSolutionModule
   class Engine < ::Rails::Engine
     engine_name reply_on_solution
-    isolate_namespace MyPluginModule
+    isolate_namespace ReplyOnSolutionModule
     config.autoload_paths << File.join(config.root, "lib")
     scheduled_job_dir = "#{config.root}/app/jobs/scheduled"
     config.to_prepare do
