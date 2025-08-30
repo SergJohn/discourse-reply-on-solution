@@ -1,1 +1,8 @@
 en:
+  site_settings:
+    reply_on_solution_enabled: "Enabled"
+  discourse_automation:
+    scriptables:
+      reply_on_solution:
+        title: "Reply on Solution"
+        description: "Automatically posts a reply when a solution is marked."
