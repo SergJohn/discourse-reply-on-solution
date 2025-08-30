@@ -1,9 +1,10 @@
 en:
-  admin_js:
-    admin:
-      site_settings:
-        categories:
-          TODO_reply_on_solution: "Reply on solution"
   js:
-    discourse_reply_on_solution:
-      placeholder: placeholder
+    scriptables:
+      reply_on_solution:
+        name: "Reply on Solution"
+        description: "Automatically posts a reply when a solution is marked"
+        fields:
+          reply_text:
+            label: "Reply Text"
+            description: "The text content of reply to be posted - it should be minimum 20 characters long."
