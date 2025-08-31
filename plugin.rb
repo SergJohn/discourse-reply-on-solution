@@ -34,7 +34,10 @@ after_initialize do
             Discourse.system_user,
             topic_id: topic.id,
             raw:
-              "Can you help us with answering the following question? (the votes are kept private) [poll type=number results=always max=10 step=1 public=false] # From 0 to 10, how likely would you recommend our Community for a friend or colleague? [/poll]",
+              "Can you help us with answering the following question? (the votes are kept private) 
+  [poll type=number results=always max=10 step=1 public=false] 
+  # From 0 to 10, how likely would you recommend our Community for a friend or colleague? 
+  [/poll]",
           )
         rescue => e
           Rails.logger.error("POST CREATION FAILED: #{e.message}\n#{e.backtrace.join("\n")}")
