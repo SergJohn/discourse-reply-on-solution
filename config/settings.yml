@@ -1,4 +1,4 @@
-TODO_reply_on_solution:
-  reply_on_solution_enabled:
+TODO_discourse_reply_on_solution:
+  discourse_reply_on_solution_enabled:
     default: false
     client: true
