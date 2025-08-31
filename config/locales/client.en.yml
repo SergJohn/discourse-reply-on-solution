@@ -1,8 +1,13 @@
 en:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          TODO_plugin_name: "Discourse Reply on Solution"
   js:
     scriptables:
-      reply_on_solution:
-        name: "Reply on Solution"
+      discourse_reply_on_solution:
+        name: "Discourse Reply on Solution"
         description: "Automatically posts a reply when a solution is marked"
         fields:
           reply_text:
