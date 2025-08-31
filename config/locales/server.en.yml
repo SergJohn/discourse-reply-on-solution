@@ -1,13 +1,13 @@
 en:
   site_settings:
-    reply_on_solution_enabled: "Enabled"
-    categories: "TODO_reply_on_solution"
+    discourse_reply_on_solution_enabled: "Enabled"
+    categories: "TODO_discourse_reply_on_solution"
   discourse_automation:
     scriptables:
-      reply_on_solution:
-        title: "Reply on Solution"
+      discourse_reply_on_solution:
+        title: "Discourse Reply on Solution"
         description: "Automatically posts a reply when a solution is marked."
-        fields:
-          reply_text:
-            label: "Reply Text"
-            description: "The text content of reply to be posted - it should be minimum 20 characters long."
+          fields:
+            reply_text:
+              label: "Reply Text"
+              description: "The text content of reply to be posted - it should be minimum 20 characters long."
