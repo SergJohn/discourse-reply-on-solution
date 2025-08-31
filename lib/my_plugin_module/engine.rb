@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module ::ReplyOnSolutionModule
+module ::DiscourseReplyOnSolutionModule
   class Engine < ::Rails::Engine
-    engine_name reply_on_solution
-    isolate_namespace ReplyOnSolutionModule
+    engine_name discourse_reply_on_solution
+    isolate_namespace DiscourseReplyOnSolutionModule
     config.autoload_paths << File.join(config.root, "lib")
     scheduled_job_dir = "#{config.root}/app/jobs/scheduled"
     config.to_prepare do
