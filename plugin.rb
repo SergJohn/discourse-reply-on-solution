@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-# name: reply-on-solution
+# name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
 # version: 0.1
 # authors: SergJohn
 
-enabled_site_setting :reply_on_solution_enabled
+enabled_site_setting :discourse_reply_on_solution_enabled
 
 after_initialize do
   if defined?(DiscourseAutomation) && defined?(DiscourseSolved)
-    add_automation_scriptable("reply_on_solution") do
+    add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :text
       version 1
       triggerables %i[first_accepted_solution]
