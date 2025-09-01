@@ -3,7 +3,7 @@ en:
     admin:
       site_settings:
         categories:
-          TODO_plugin_name: "Discourse Reply on Solution"
+          Discourse_reply_on_solution: "Discourse Reply on Solution"
   js:
     discourse_automation:
       triggerables:
