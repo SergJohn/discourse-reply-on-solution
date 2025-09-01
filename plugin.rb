@@ -21,6 +21,7 @@ after_initialize do
         accepted_post_id = context["accepted_post_id"]
         accepted_post = Post.find_by(id: accepted_post_id)
         reply_text = fields.dig("reply_text", "value") || "Solution accepted!"
+        reply_text = reply_text.to_s.strip 
 
         unless accepted_post
           Rails.logger.error("Accepted post with id #{accepted_post_id} was not found.")
@@ -33,7 +34,7 @@ after_initialize do
           PostCreator.create!(
             Discourse.system_user,
             topic_id: topic.id,
-            raw: reply_text,
+            raw: reply_text.presence || "A solution has been marked for this topic!",
           )
         rescue => e
           Rails.logger.error("POST CREATION FAILED: #{e.message}\n#{e.backtrace.join("\n")}")
