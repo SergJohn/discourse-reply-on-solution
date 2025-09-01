@@ -10,7 +10,7 @@ enabled_site_setting :discourse_reply_on_solution_enabled
 after_initialize do
   if defined?(DiscourseAutomation)
     add_automation_scriptable("discourse_reply_on_solution") do
-      field :reply_text, component: :text
+      field :reply_text, component: :message
       
       version 1
       
@@ -33,11 +33,7 @@ after_initialize do
           PostCreator.create!(
             Discourse.system_user,
             topic_id: topic.id,
-            raw:
-              "Can you help us with answering the following question? (the votes are kept private) 
-  [poll type=number results=always max=10 step=1 public=false] 
-  # From 0 to 10, how likely would you recommend our Community for a friend or colleague? 
-  [/poll]",
+            raw: reply_text,
           )
         rescue => e
           Rails.logger.error("POST CREATION FAILED: #{e.message}\n#{e.backtrace.join("\n")}")
