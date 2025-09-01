@@ -3,7 +3,7 @@ en:
     admin:
       site_settings:
         categories:
-          Discourse_reply_on_solution: "Discourse Reply on Solution"
+          discourse_reply_on_solution: "Discourse Reply on Solution"
   js:
     discourse_automation:
       scriptables:
