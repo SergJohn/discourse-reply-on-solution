@@ -35,7 +35,7 @@ after_initialize do
           PostCreator.create!(
             Discourse.system_user,
             topic_id: topic.id,
-            raw: reply_text.presence || "A solution has been marked for this topic!",
+            raw: reply_text || "A solution has been marked for this topic!",
           )
         rescue => e
           Rails.logger.error("POST CREATION FAILED: #{e.message}\n#{e.backtrace.join("\n")}")
