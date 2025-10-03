@@ -11,6 +11,7 @@ after_initialize do
   if defined?(DiscourseAutomation)
     add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :message
+      field :once, component: :boolean
       
       version 1
       
