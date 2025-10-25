@@ -10,5 +10,8 @@ en:
         discourse_reply_on_solution:
           fields:
             reply_text:
-              label: "reply_text"
+              label: "Reply text"
               description: "The text content of reply to be posted - it should be minimum 20 characters long."
+            Once:
+              label: "Once"
+              description: "Only responds once by Topic"
