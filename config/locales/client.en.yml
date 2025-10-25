@@ -12,6 +12,3 @@ en:
             reply_text:
               label: "Reply text"
               description: "The text content of reply to be posted - it should be minimum 20 characters long."
-            once:
-              label: "Once"
-              description: "Only responds once per Topic"
