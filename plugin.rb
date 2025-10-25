@@ -10,7 +10,7 @@ enabled_site_setting :discourse_reply_on_solution_enabled
 after_initialize do
   if defined?(DiscourseAutomation)
     add_automation_scriptable("discourse_reply_on_solution") do
-      field :reply_text, component: :message
+      field :reply_text, component: :text
       field :once, component: :boolean
       
       version 1
