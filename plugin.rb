@@ -21,7 +21,7 @@ after_initialize do
 
         accepted_post_id = context["accepted_post_id"]
         accepted_post = Post.find_by(id: accepted_post_id)
-        reply_text = fields.dig("reply_text", "value") || "Solution accepted!"
+        reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
         # reply_text = reply_text.to_s.strip 
 
         unless accepted_post
