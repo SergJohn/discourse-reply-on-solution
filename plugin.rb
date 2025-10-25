@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.1
+# version: 0.2
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
