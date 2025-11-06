@@ -37,7 +37,7 @@ after_initialize do
             PostCreator.create!(
               Discourse.system_user,
               topic_id: topic.id,
-              raw: "#{reply_text}\n\n#{marker}",
+              raw: "#{marker}\n\n#{reply_text}\n\n",
             )
           rescue => e
             Rails.logger.error("POST CREATION FAILED: #{e.message}\n#{e.backtrace.join("\n")}")
