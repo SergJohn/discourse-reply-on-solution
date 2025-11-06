@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.8
+# version: 0.9
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -14,7 +14,7 @@ after_initialize do
       
       version 1
       
-      triggerables [:accepted_solution]
+      triggerables [:first_accepted_solution]
       
       script do |context, fields, automation|
         accepted_post_id = context["accepted_post_id"]
