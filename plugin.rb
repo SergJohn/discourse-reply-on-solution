@@ -2,19 +2,19 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.9
+# version: 0.10
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
 
 after_initialize do
-  if defined?(DiscourseAutomation) && defined?(DiscourseSolved)
+  if defined?(DiscourseAutomation)
     add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :message
       
       version 1
       
-      triggerables [:first_accepted_solution]
+      triggerables [:first_accepted_solution] if defined?(DiscourseSolved)
       
       script do |context, fields, automation|
         accepted_post_id = context["accepted_post_id"]
@@ -29,8 +29,7 @@ after_initialize do
           return
         end
       
-        # topic = accepted_post.topic
-        topic = Topic.find_by(id: topic_id)
+        topic = accepted_post.topic
       
         # Only add reply if this topic does not already have it
         already_replied = Post.where(topic_id: topic.id).where("raw LIKE ?", "%#{marker}%").exists?
@@ -40,7 +39,7 @@ after_initialize do
             PostCreator.create!(
               Discourse.system_user,
               topic_id: topic.id,
-              raw: "#{marker}\n\n#{reply_text}\n\n",
+              raw: "#{marker}\n\n#{reply_text}",
             )
           rescue => e
             Rails.logger.error("POST CREATION FAILED: #{e.message}\n#{e.backtrace.join("\n")}")
