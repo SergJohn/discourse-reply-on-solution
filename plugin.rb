@@ -29,7 +29,8 @@ after_initialize do
           next
         end
       
-        topic = accepted_post.topic
+        # topic = accepted_post.topic
+        topic = Topic.find_by(id: topic_id)
       
         # Only add reply if this topic does not already have it
         already_replied = Post.where(topic_id: topic.id).where("raw LIKE ?", "%#{marker}%").exists?
