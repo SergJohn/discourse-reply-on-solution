@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.6
+# version: 0.7
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -14,7 +14,7 @@ after_initialize do
       
       version 1
       
-      triggerables [:first_accepted_solution]
+      triggerables [:accepted_solution]
       
       script do |context, fields, automation|
         accepted_post_id = context["accepted_post_id"]
@@ -26,7 +26,7 @@ after_initialize do
       
         unless accepted_post
           Rails.logger.error("Accepted post with id #{accepted_post_id} was not found.")
-          next
+          return
         end
       
         # topic = accepted_post.topic
