@@ -6,6 +6,18 @@ en:
           discourse_reply_on_solution: "Discourse Reply on Solution"
   js:
     discourse_automation:
+      triggerables:
+        accepted_solution:
+          max_trust_level:
+            tl1: < TL1
+            tl2: < TL2
+            tl3: < TL3
+            tl4: < TL4
+            any: Any
+          fields:
+            maximum_trust_level:
+              label: Trust Level
+              description: Users under this Trust Level will trigger this automation
       scriptables:
         discourse_reply_on_solution:
           fields:
