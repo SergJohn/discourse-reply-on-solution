@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.0.13B
+# version: 0.0.13C
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -14,34 +14,23 @@ after_initialize do
       
       version 1
       
-      # triggerables [:first_accepted_solution] if defined?(DiscourseSolved)
       triggerables [:recurring]
       
       script do |context, fields, automation|
         topic = context["topic"]
-        # accepted_post_id = context["accepted_post_id"]
-        # accepted_post = Post.find_by(id: accepted_post_id)
         reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
       
         # Marker to flag system's automated reply (scoped PER topic)
         marker = "<!-- discourse_reply_on_solution -->"
       
-        # unless accepted_post
-        #   Rails.logger.error("Accepted post with id #{accepted_post_id} was not found.")
-        #   return
-        # end
-      
-        # topic = accepted_post.topic
-      
         # Only add reply if this topic does not already have it
         already_replied = Post.where(topic_id: topic.id).where("raw LIKE ?", "%#{marker}%").exists?
-          # Check for solution (requires Discourse Solved plugin)
+        
         solved_post_id = topic.custom_fields["accepted_answer_post_id"]
         puts "this is the value on solved_post_id " + solved_post_id 
         has_solution = solved_post_id.present?
-
-        # if topic && (topic.closed? || has_solution)
-        if topic || (topic.closed? || has_solution)
+        
+        if topic && (topic.closed? || has_solution)
           unless already_replied
             begin
               PostCreator.create!(
