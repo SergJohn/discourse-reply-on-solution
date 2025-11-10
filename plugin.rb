@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to solved topics during a recurring automation run
-# version: 0.0.15D
+# version: 0.0.15E
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -29,13 +29,14 @@ after_initialize do
         #
         # STEP 1 — Fetch all solved topics that do NOT yet have our reply
         #
-        solved_topics = Topic
-          .joins("JOIN topic_custom_fields tcf ON tcf.topic_id = topics.id")
-          .where("tcf.name = 'accepted_answer_post_id' AND tcf.value IS NOT NULL")
+        solved_topic_ids = TopicCustomField
+          .where(name: "accepted_answer_post_id")
+          .where.not(value: [nil, ""])
+          .pluck(:topic_id)
 
         Rails.logger.info("[discourse_reply_on_solution] Found #{solved_topics.count} solved topics")
 
-        solved_topics.find_each do |topic|
+        Topic.where(id: solved_topic_ids).find_each do |topic|
           Rails.logger.debug("[discourse_reply_on_solution] Checking topic #{topic.id}")
 
           # Check if our script already replied
