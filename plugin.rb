@@ -1,55 +1,76 @@
 # frozen_string_literal: true
 
 # name: discourse-reply-on-solution
-# about: Replies to topics when a solution is accepted
-# version: 0.0.15C
+# about: Replies to solved topics during a recurring automation run
+# version: 0.0.15D
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
 
 after_initialize do
   if defined?(DiscourseAutomation)
+
     add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :message
 
-      version 2
+      version 1
 
+      # We will use recurring only
       triggerables [:recurring]
 
       script do |context, fields, automation|
-        # topic = context["topic"]
-        topic = Topic.where("custom_fields @> ?", { accepted_answer_post_id: nil }.to_json)
-        
-        unless topic.is_a?(Topic)
-          Rails.logger.warn("[discourse_reply_on_solution] No topic found in context: #{context.inspect}")
-          next
-        end
+        Rails.logger.info("[discourse_reply_on_solution] Recurring run starting")
+
+        reply_text = fields.dig("reply_text", "value") ||
+                     "Great! Your Topic has an accepted solution!"
 
         marker = "<!-- discourse_reply_on_solution -->"
-        already_replied = Post.where(topic_id: topic.id)
-                              .where("raw LIKE ?", "%#{marker}%")
-                              .exists?
 
-        solved_post_id = topic.custom_fields["accepted_answer_post_id"]
-        has_solution = solved_post_id.present?
+        #
+        # STEP 1 — Fetch all solved topics that do NOT yet have our reply
+        #
+        solved_topics = Topic
+          .joins("JOIN topic_custom_fields tcf ON tcf.topic_id = topics.id")
+          .where("tcf.name = 'accepted_answer_post_id' AND tcf.value IS NOT NULL")
 
-        if topic.solved? || (has_solution && !already_replied)
-          reply_text = fields.dig("reply_text", "value") || "Great! Your Topic has an accepted solution!"
+        Rails.logger.info("[discourse_reply_on_solution] Found #{solved_topics.count} solved topics")
+
+        solved_topics.find_each do |topic|
+          Rails.logger.debug("[discourse_reply_on_solution] Checking topic #{topic.id}")
+
+          # Check if our script already replied
+          already_replied = Post.exists?(
+            "topic_id = ? AND raw LIKE ?", topic.id, "%#{marker}%"
+          )
+
+          if already_replied
+            Rails.logger.debug("[discourse_reply_on_solution] Already replied to #{topic.id}, skipping")
+            next
+          end
+
+          #
+          # STEP 2 — Create the auto-reply post
+          #
           begin
             PostCreator.create!(
               Discourse.system_user,
               topic_id: topic.id,
               raw: "#{marker}\n\n#{reply_text}"
             )
+
             Rails.logger.info("[discourse_reply_on_solution] Posted solution reply to topic #{topic.id}")
+
           rescue => e
-            Rails.logger.error("[discourse_reply_on_solution] Failed to create post: #{e.message}\n#{e.backtrace.join("\n")}")
+            Rails.logger.error(
+              "[discourse_reply_on_solution] Failed to post to topic #{topic.id}: #{e.class} #{e.message}\n#{e.backtrace.join("\n")}"
+            )
           end
-        else
-          Rails.logger.debug("[discourse_reply_on_solution] Skipped: has_solution=#{has_solution} already_replied=#{already_replied}")
         end
+
+        Rails.logger.info("[discourse_reply_on_solution] Recurring run finished")
       end
     end
+
   else
     Rails.logger.warn("[discourse_reply_on_solution] DiscourseAutomation plugin not loaded!")
   end
