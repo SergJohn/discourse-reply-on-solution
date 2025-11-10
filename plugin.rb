@@ -34,7 +34,7 @@ after_initialize do
           .where.not(value: [nil, ""])
           .pluck(:topic_id)
 
-        Rails.logger.info("[discourse_reply_on_solution] Found #{solved_topics.count} solved topics")
+        Rails.logger.info("[discourse_reply_on_solution] Found #{solved_topic_ids.count} solved topics")
 
         Topic.where(id: solved_topic_ids).find_each do |topic|
           Rails.logger.debug("[discourse_reply_on_solution] Checking topic #{topic.id}")
