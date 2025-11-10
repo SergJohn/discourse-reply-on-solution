@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.0.15B
+# version: 0.0.15C
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -17,8 +17,9 @@ after_initialize do
       triggerables [:recurring]
 
       script do |context, fields, automation|
-        topic = context["topic"]
-
+        # topic = context["topic"]
+        topic = Topic.where("custom_fields @> ?", { accepted_answer_post_id: nil }.to_json)
+        
         unless topic.is_a?(Topic)
           Rails.logger.warn("[discourse_reply_on_solution] No topic found in context: #{context.inspect}")
           next
