@@ -14,7 +14,7 @@ after_initialize do
 
       version 2
 
-      triggerables [:topic]
+      triggerables [:recurring]
 
       script do |context, fields, automation|
         topic = context["topic"]
