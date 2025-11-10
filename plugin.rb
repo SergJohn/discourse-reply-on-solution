@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.0.13
+# version: 0.0.13B
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -37,6 +37,7 @@ after_initialize do
         already_replied = Post.where(topic_id: topic.id).where("raw LIKE ?", "%#{marker}%").exists?
           # Check for solution (requires Discourse Solved plugin)
         solved_post_id = topic.custom_fields["accepted_answer_post_id"]
+        puts "this is the value on solved_post_id " + solved_post_id 
         has_solution = solved_post_id.present?
 
         # if topic && (topic.closed? || has_solution)
