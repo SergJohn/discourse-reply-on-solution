@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.0.12
+# version: 0.0.13
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -11,7 +11,6 @@ after_initialize do
   if defined?(DiscourseAutomation)
     add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :message
-      field :recurring, component: :boolean
       
       version 1
       
@@ -40,7 +39,8 @@ after_initialize do
         solved_post_id = topic.custom_fields["accepted_answer_post_id"]
         has_solution = solved_post_id.present?
 
-        if topic && (topic.closed? || has_solution)
+        # if topic && (topic.closed? || has_solution)
+        if topic || (topic.closed? || has_solution)
           unless already_replied
             begin
               PostCreator.create!(
