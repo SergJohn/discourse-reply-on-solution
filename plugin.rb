@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted
-# version: 0.0.14
+# version: 0.0.15
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -14,7 +14,7 @@ after_initialize do
 
       version 2
 
-      triggerables [:recurring]
+      triggerables [:topic]
 
       script do |context, fields, automation|
         topic = context["topic"]
