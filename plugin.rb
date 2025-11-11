@@ -8,10 +8,9 @@
 enabled_site_setting :discourse_reply_on_solution_enabled
 
 after_initialize do
-    if defined?(DiscourseAutomation)
-      # --- Custom TRIGGER ---
-      DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS = "all_accepted_solutions"
-      add_automation_triggerable(DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS) do
+  if defined?(DiscourseAutomation)
+    DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS = "all_accepted_solutions"
+    add_automation_triggerable(DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS) do
         on(:post_accepted_solution) do |post, acting_user|
           context = {
             post: post,
@@ -20,10 +19,7 @@ after_initialize do
             solution_post_user: post.user
           }
           DiscourseAutomation.trigger!(:all_accepted_solutions, context)
-        end
-      end
-  
-  if defined?(DiscourseAutomation)
+    end
 
     add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :message
