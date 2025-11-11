@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to solved topics during a recurring automation run
-# version: 0.0.15J
+# version: 0.0.15J2
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -16,7 +16,7 @@ after_initialize do
       version 1
 
       # We will use recurring only
-      triggerables [:recurring]
+      triggerables %i[recurring]
 
       script do |context, fields, automation|
         Rails.logger.info("[discourse_reply_on_solution] Recurring run starting")
