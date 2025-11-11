@@ -112,7 +112,7 @@ after_initialize do
         Post.exists?(
           topic_id: topic.id,
           user_id: Discourse.system_user.id,
-          raw: like: "%#{marker}%"
+          raw: "%#{marker}%"
         )
       end
 
@@ -134,8 +134,5 @@ after_initialize do
         end
       end
     end
-
-  else
-    Rails.logger.warn("[discourse_reply_on_solution] DiscourseAutomation plugin not loaded!")
   end
 end
