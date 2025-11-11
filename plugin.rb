@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted and checks existing topics
-# version: 0.0.15H
+# version: 0.0.15I
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -19,86 +19,60 @@ after_initialize do
       triggerables [:recurring, :point_in_time]
 
       script do |context, fields, automation|
+        reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
+        check_existing = fields.dig("check_existing", "value") == "true"
+        once_only = fields.dig("once", "value") == "true"
+
         # Handle real-time solution acceptance
         if context["accepted_post_id"]
-          handle_solution_accepted(context, fields)
-        else
+          accepted_post_id = context["accepted_post_id"]
+          accepted_post = Post.find_by(id: accepted_post_id)
+
+          unless accepted_post
+            Rails.logger.error("Accepted post with id #{accepted_post_id} was not found.")
+            next
+          end
+      
+          topic = accepted_post.topic
+          
+          # Check if we should reply to this topic
+          if should_reply_to_topic?(topic, once_only)
+            create_reply(topic, reply_text)
+          end
+        elsif check_existing
           # Handle bulk checking of existing topics
-          handle_bulk_check(fields)
+          Rails.logger.info("Starting bulk check of existing topics")
+          
+          # Find topics with solutions
+          topics_with_solutions = Topic.joins(:custom_fields)
+            .where("topic_custom_fields.name = 'accepted_answer_post_id'")
+            .where("topic_custom_fields.value IS NOT NULL")
+            .where("topic_custom_fields.value != ''")
+            .distinct
+
+          # Find closed topics  
+          closed_topics = Topic.where(closed: true)
+          
+          # Combine and remove duplicates
+          all_topics = (topics_with_solutions + closed_topics).uniq(&:id)
+          
+          Rails.logger.info("Found #{all_topics.count} total topics to check")
+          
+          processed = 0
+          all_topics.each do |topic|
+            if should_reply_to_topic?(topic, once_only)
+              create_reply(topic, reply_text)
+              processed += 1
+            end
+          end
+          
+          Rails.logger.info("Processed #{processed} topics with replies")
         end
       end
 
-      # Define methods as lambdas within the scriptable block
-      define_method :handle_solution_accepted do |context, fields|
-        accepted_post_id = context["accepted_post_id"]
-        accepted_post = Post.find_by(id: accepted_post_id)
-        reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
-
-        unless accepted_post
-          Rails.logger.error("Accepted post with id #{accepted_post_id} was not found.")
-          return
-        end
-    
-        topic = accepted_post.topic
-        
-        # Check if we already replied to this topic
-        if should_reply?(topic, fields)
-          create_reply(topic, reply_text)
-        end
-      end
-
-      define_method :handle_bulk_check do |fields|
-        return unless fields.dig("check_existing", "value") == "true"
-        
-        reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
-        
-        # Find all topics that need replies
-        topics_to_reply = find_topics_needing_reply(fields)
-        
-        Rails.logger.info("Found #{topics_to_reply.count} topics needing replies")
-        
-        topics_to_reply.each do |topic|
-          create_reply(topic, reply_text)
-        end
-      end
-
-      define_method :find_topics_needing_reply do |fields|
-        topics = []
-        
-        # Check topics with accepted solutions
-        topics_with_solutions = find_topics_with_solutions
-        topics.concat(topics_with_solutions)
-        
-        # Check closed topics
-        closed_topics = find_closed_topics
-        topics.concat(closed_topics)
-        
-        # Remove duplicates and topics we already replied to
-        topics.uniq(&:id).select { |topic| should_reply?(topic, fields) }
-      end
-
-      define_method :find_topics_with_solutions do
-        # Method 1: Using discourse-solved plugin fields
-        topics = Topic.joins(:custom_fields)
-          .where("topic_custom_fields.name = 'accepted_answer_post_id'")
-          .where("topic_custom_fields.value IS NOT NULL")
-          .where("topic_custom_fields.value != ''")
-          .distinct
-        
-        # Method 2: Alternative check for solution posts
-        if topics.empty?
-          topics = Topic.where(closed: true)
-        end
-        
-        topics
-      end
-
-      define_method :find_closed_topics do
-        Topic.where(closed: true)
-      end
-
-      define_method :should_reply? do |topic, fields|
-        # Check if we already replied to this topic
+      # Helper method to check if we should reply to a topic
+      define_method :should_reply_to_topic? do |topic, once_only|
+        # Check if we already replied to this topic with our action code
         already_replied = Post.where(
           topic_id: topic.id, 
           user_id: Discourse.system_user.id,
@@ -108,7 +82,7 @@ after_initialize do
         return false if already_replied
         
         # If "once" is enabled, check if any system reply exists
-        if fields.dig("once", "value") == "true"
+        if once_only
           has_system_reply = Post.where(
             topic_id: topic.id, 
             user_id: Discourse.system_user.id
@@ -119,6 +93,7 @@ after_initialize do
         true
       end
 
+      # Helper method to create replies
       define_method :create_reply do |topic, reply_text|
         begin
           PostCreator.create!(
@@ -130,7 +105,7 @@ after_initialize do
           )
           Rails.logger.info("Created reply for topic #{topic.id}")
         rescue => e
-          Rails.logger.error("POST CREATION FAILED for topic #{topic.id}: #{e.message}\n#{e.backtrace.join("\n")}")
+          Rails.logger.error("POST CREATION FAILED for topic #{topic.id}: #{e.message}")
         end
       end
     end
