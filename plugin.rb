@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to solved topics during a recurring automation run
-# version: 0.1.2
+# version: 0.1.3
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
