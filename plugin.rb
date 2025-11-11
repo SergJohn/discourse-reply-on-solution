@@ -81,7 +81,7 @@ after_initialize do
         already_replied = Post.exists?(
           topic_id: topic.id,
           user_id: Discourse.system_user.id,
-          raw: like: "%#{marker}%"
+          raw: "%#{marker}%"
         )
 
         if already_replied
@@ -126,5 +126,4 @@ after_initialize do
         end
       end
     end
-  end
 end
