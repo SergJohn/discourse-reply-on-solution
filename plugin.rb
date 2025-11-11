@@ -11,14 +11,15 @@ after_initialize do
   if defined?(DiscourseAutomation)
     DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS = "all_accepted_solutions"
     add_automation_triggerable(DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS) do
-        on(:post_accepted_solution) do |post, acting_user|
-          context = {
-            post: post,
-            topic: post.topic,
-            user: acting_user,
-            solution_post_user: post.user
-          }
-          DiscourseAutomation.trigger!(:all_accepted_solutions, context)
+      on(:post_accepted_solution) do |post, acting_user|
+        context = {
+          post: post,
+          topic: post.topic,
+          user: acting_user,
+          solution_post_user: post.user
+        }
+        DiscourseAutomation.trigger!(:all_accepted_solutions, context)
+      end
     end
 
     add_automation_scriptable("discourse_reply_on_solution") do
@@ -26,7 +27,6 @@ after_initialize do
 
       version 1
 
-      # We will use recurring only
       triggerables [:recurring, :all_accepted_solutions]
 
       script do |context, fields, automation|
@@ -37,9 +37,7 @@ after_initialize do
 
         marker = "<!-- discourse_reply_on_solution -->"
 
-        #
         # STEP 1 — Fetch all solved topics that do NOT yet have our reply
-        #
         solved_topic_ids = TopicCustomField
           .where(name: "accepted_answer_post_id")
           .where.not(value: [nil, ""])
@@ -60,9 +58,7 @@ after_initialize do
             next
           end
 
-          #
           # STEP 2 — Create the auto-reply post
-          #
           begin
             PostCreator.create!(
               Discourse.system_user,
