@@ -2,12 +2,27 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to solved topics during a recurring automation run
-# version: 0.0.15J2
+# version: 0.1.0
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
 
 after_initialize do
+    if defined?(DiscourseAutomation)
+      # --- Custom TRIGGER ---
+      DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS = "all_accepted_solutions"
+      add_automation_triggerable(DiscourseAutomation::Triggerable::ALL_ACCEPTED_SOLUTIONS) do
+        on(:post_accepted_solution) do |post, acting_user|
+          context = {
+            post: post,
+            topic: post.topic,
+            user: acting_user,
+            solution_post_user: post.user
+          }
+          DiscourseAutomation.trigger!(:all_accepted_solutions, context)
+        end
+      end
+  
   if defined?(DiscourseAutomation)
 
     add_automation_scriptable("discourse_reply_on_solution") do
@@ -16,7 +31,7 @@ after_initialize do
       version 1
 
       # We will use recurring only
-      triggerables %i[recurring]
+      triggerables [:recurring, :all_accepted_solutions]
 
       script do |context, fields, automation|
         Rails.logger.info("[discourse_reply_on_solution] Recurring run starting")
