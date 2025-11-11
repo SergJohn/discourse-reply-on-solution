@@ -6,6 +6,9 @@ en:
           discourse_reply_on_solution: "Discourse Reply on Solution"
   js:
     discourse_automation:
+      triggerables:
+        all_accepted_solutions:
+          title: "all_accepted_solutions"
       scriptables:
         discourse_reply_on_solution:
           fields:
