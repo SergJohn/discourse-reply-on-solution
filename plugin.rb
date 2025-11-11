@@ -2,7 +2,7 @@
 
 # name: discourse-reply-on-solution
 # about: Replies to topics when a solution is accepted and checks existing topics
-# version: 0.0.15G
+# version: 0.0.15H
 # authors: SergJohn
 
 enabled_site_setting :discourse_reply_on_solution_enabled
@@ -28,7 +28,8 @@ after_initialize do
         end
       end
 
-      def handle_solution_accepted(context, fields)
+      # Define methods as lambdas within the scriptable block
+      define_method :handle_solution_accepted do |context, fields|
         accepted_post_id = context["accepted_post_id"]
         accepted_post = Post.find_by(id: accepted_post_id)
         reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
@@ -46,7 +47,7 @@ after_initialize do
         end
       end
 
-      def handle_bulk_check(fields)
+      define_method :handle_bulk_check do |fields|
         return unless fields.dig("check_existing", "value") == "true"
         
         reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
@@ -61,7 +62,7 @@ after_initialize do
         end
       end
 
-      def find_topics_needing_reply(fields)
+      define_method :find_topics_needing_reply do |fields|
         topics = []
         
         # Check topics with accepted solutions
@@ -76,7 +77,7 @@ after_initialize do
         topics.uniq(&:id).select { |topic| should_reply?(topic, fields) }
       end
 
-      def find_topics_with_solutions
+      define_method :find_topics_with_solutions do
         # Method 1: Using discourse-solved plugin fields
         topics = Topic.joins(:custom_fields)
           .where("topic_custom_fields.name = 'accepted_answer_post_id'")
@@ -92,11 +93,11 @@ after_initialize do
         topics
       end
 
-      def find_closed_topics
+      define_method :find_closed_topics do
         Topic.where(closed: true)
       end
 
-      def should_reply?(topic, fields)
+      define_method :should_reply? do |topic, fields|
         # Check if we already replied to this topic
         already_replied = Post.where(
           topic_id: topic.id, 
@@ -118,7 +119,7 @@ after_initialize do
         true
       end
 
-      def create_reply(topic, reply_text)
+      define_method :create_reply do |topic, reply_text|
         begin
           PostCreator.create!(
             Discourse.system_user,
