@@ -9,46 +9,18 @@ enabled_site_setting :discourse_reply_on_solution_enabled
 
 after_initialize do
   if defined?(DiscourseAutomation)
-    # Register a custom triggerable
-    module ::DiscourseAutomation::Triggerable
-      class AllAcceptedSolutions < ::DiscourseAutomation::Triggerable
-        def self.name
-          'all_accepted_solutions'
-        end
-
-        def self.display_name
-          I18n.t('discourse_reply_on_solution.triggerables.all_accepted_solutions.display_name')
-        end
-
-        def self.description
-          I18n.t('discourse_reply_on_solution.triggerables.all_accepted_solutions.description')
-        end
-      end
-    end
-
-    # Listen for solution acceptance events
-    on(:accepted_solution) do |post|
-      # This will trigger automations using the 'all_accepted_solutions' trigger
-      DiscourseAutomation::Automation
-        .where(trigger: 'all_accepted_solutions', enabled: true)
-        .find_each do |automation|
-          automation.trigger!(
-            'kind' => 'all_accepted_solutions',
-            'post' => post,
-            'topic' => post.topic,
-            'user' => post.user,
-            'accepted_solution' => true
-          )
-        end
-    end
-
     add_automation_scriptable("discourse_reply_on_solution") do
       field :reply_text, component: :message
+      field :process_existing, component: :boolean
 
       version 1
 
-      # Register for both recurring and our custom trigger
-      triggerables [:recurring, :all_accepted_solutions]
+      # Use post_created trigger with filters for solution posts
+      triggerables [:recurring, :post_created]
+
+      placeholder :post_raw
+      placeholder :topic_id
+      placeholder :username
 
       script do |context, fields, automation|
         Rails.logger.info("[discourse_reply_on_solution] Automation run starting - trigger: #{automation.trigger}")
@@ -58,56 +30,92 @@ after_initialize do
 
         marker = "<!-- discourse_reply_on_solution -->"
 
-        # Determine which topics to process based on trigger type
-        if automation.trigger == 'all_accepted_solutions'
-          # Single topic from the solution acceptance event
-          topic = context['topic']
-          if topic
-            process_single_topic(topic, reply_text, marker)
-          end
-        else
-          # Recurring trigger - process all solved topics
-          process_all_solved_topics(reply_text, marker)
+        case automation.trigger
+        when 'post_created'
+          # Check if this post creation is related to a solution
+          process_post_created_trigger(context, reply_text, marker)
+        when 'recurring'
+          process_recurring_trigger(fields, reply_text, marker)
         end
 
         Rails.logger.info("[discourse_reply_on_solution] Automation run finished")
       end
 
-      # Helper method to process a single topic
-      define_method :process_single_topic do |topic, reply_text, marker|
-        Rails.logger.debug("[discourse_reply_on_solution] Processing single topic #{topic.id}")
+      define_method :process_post_created_trigger do |context, reply_text, marker|
+        post = context['post']
+        return unless post
 
-        # Check if our script already replied
-        already_replied = Post.exists?(
-          topic_id: topic.id,
-          user_id: Discourse.system_user.id,
-          raw: "%#{marker}%"
-        )
+        # Check if this topic has an accepted solution
+        topic = post.topic
+        return unless topic_has_solution?(topic)
 
-        if already_replied
-          Rails.logger.debug("[discourse_reply_on_solution] Already replied to #{topic.id}, skipping")
-          return
-        end
+        # Only reply once per topic
+        return if already_replied_to_topic?(topic, marker)
 
         create_reply(topic, reply_text, marker)
       end
 
-      # Helper method to process all solved topics
+      define_method :process_recurring_trigger do |fields, reply_text, marker|
+        process_existing = fields.dig("process_existing", "value") == "true"
+        
+        if process_existing
+          process_all_solved_topics(reply_text, marker)
+        else
+          # Only process recently solved topics (last 24 hours)
+          process_recently_solved_topics(reply_text, marker)
+        end
+      end
+
       define_method :process_all_solved_topics do |reply_text, marker|
-        # Fetch all solved topics that do NOT yet have our reply
         solved_topic_ids = TopicCustomField
           .where(name: "accepted_answer_post_id")
           .where.not(value: [nil, ""])
           .pluck(:topic_id)
 
-        Rails.logger.info("[discourse_reply_on_solution] Found #{solved_topic_ids.count} solved topics")
+        Rails.logger.info("[discourse_reply_on_solution] Processing #{solved_topic_ids.count} solved topics")
 
         Topic.where(id: solved_topic_ids).find_each do |topic|
           process_single_topic(topic, reply_text, marker)
         end
       end
 
-      # Helper method to create the reply post
+      define_method :process_recently_solved_topics do |reply_text, marker|
+        # Find topics that were solved in the last 24 hours
+        recent_solution_topic_ids = TopicCustomField
+          .where(name: "accepted_answer_post_id")
+          .where.not(value: [nil, ""])
+          .where("created_at > ?", 24.hours.ago)
+          .pluck(:topic_id)
+
+        Rails.logger.info("[discourse_reply_on_solution] Processing #{recent_solution_topic_ids.count} recently solved topics")
+
+        Topic.where(id: recent_solution_topic_ids).find_each do |topic|
+          process_single_topic(topic, reply_text, marker)
+        end
+      end
+
+      define_method :process_single_topic do |topic, reply_text, marker|
+        return if already_replied_to_topic?(topic, marker)
+
+        create_reply(topic, reply_text, marker)
+      end
+
+      define_method :topic_has_solution? do |topic|
+        TopicCustomField.exists?(
+          topic_id: topic.id,
+          name: "accepted_answer_post_id",
+          value: !nil
+        )
+      end
+
+      define_method :already_replied_to_topic? do |topic, marker|
+        Post.exists?(
+          topic_id: topic.id,
+          user_id: Discourse.system_user.id,
+          raw: like: "%#{marker}%"
+        )
+      end
+
       define_method :create_reply do |topic, reply_text, marker|
         begin
           PostCreator.create!(
@@ -121,10 +129,13 @@ after_initialize do
 
         rescue => e
           Rails.logger.error(
-            "[discourse_reply_on_solution] Failed to post to topic #{topic.id}: #{e.class} #{e.message}\n#{e.backtrace.join("\n")}"
+            "[discourse_reply_on_solution] Failed to post to topic #{topic.id}: #{e.class} #{e.message}"
           )
         end
       end
     end
+
+  else
+    Rails.logger.warn("[discourse_reply_on_solution] DiscourseAutomation plugin not loaded!")
   end
 end
