@@ -126,8 +126,5 @@ after_initialize do
         end
       end
     end
-
-  else
-    Rails.logger.warn("[discourse_reply_on_solution] DiscourseAutomation plugin not loaded!")
   end
 end
