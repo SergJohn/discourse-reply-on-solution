@@ -38,22 +38,6 @@ after_initialize do
           )
       
           Rails.logger.info("Solution automation: post created in topic ##{post.topic_id}")
-
-      # Helper method to create replies
-      # define_method :create_reply do |topic, reply_text|
-      #   begin
-      #     PostCreator.create!(
-      #       Discourse.system_user,
-      #       topic_id: topic.id,
-      #       raw: reply_text,
-      #       action_code: 'solution_notification',
-      #       skip_validations: true
-      #     )
-      #     Rails.logger.info("Created reply for topic #{topic.id}")
-      #   rescue => e
-      #     Rails.logger.error("POST CREATION FAILED for topic #{topic.id}: #{e.message}")
-      #   end
-      # end
         end
       end
     end
