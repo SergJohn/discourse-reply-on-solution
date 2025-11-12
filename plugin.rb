@@ -20,12 +20,11 @@ after_initialize do
         reply_text = fields.dig("reply_text", "value") || "Your Topic has got an accepted solution!"
         
         DiscourseEvent.on(:accepted_solution) do |post|
-
           # Prevent duplicates
           already_posted = Post.exists?(
             topic_id: post.topic_id,
             user_id: Discourse.system_user.id,
-            raw: message
+            raw: reply_text  # Fixed: changed 'message' to 'reply_text'
           )
           
           next if already_posted
@@ -34,10 +33,11 @@ after_initialize do
           PostCreator.create!(
             Discourse.system_user,
             topic_id: post.topic_id,
-            raw: message
+            raw: reply_text  # Fixed: changed 'message' to 'reply_text'
           )
       
           Rails.logger.info("Solution automation: post created in topic ##{post.topic_id}")
+        end
       end
     end
   end
