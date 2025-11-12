@@ -38,7 +38,6 @@ after_initialize do
           )
       
           Rails.logger.info("Solution automation: post created in topic ##{post.topic_id}")
-        end
       end
     end
   end
