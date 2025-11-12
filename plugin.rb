@@ -54,6 +54,8 @@ after_initialize do
       #     Rails.logger.error("POST CREATION FAILED for topic #{topic.id}: #{e.message}")
       #   end
       # end
+        end
+      end
     end
   end
 end
